@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lootbox App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Lootbox App</h1>
+        
+        <div id="warning" class="warning hidden">
+            ⚠️ Warning: Odds do not add up to 1. Outcomes won't be accurate!
+            <button id="proceedAnyway" class="btn-proceed">Proceed Anyway</button>
+        </div>
+        
+        <div class="main-controls">
+            <button id="openBox" class="btn">Open Lootbox</button>
+            <button id="editBox" class="btn">Edit Lootbox</button>
+            <button id="createBox" class="btn">Create New Lootbox</button>
+            <button id="saveBox" class="btn">Save Lootbox</button>
+            <button id="loadBox" class="btn">Load Lootbox</button>
+        </div>
+        
+        <div id="result" class="result hidden">
+            <h3>You got:</h3>
+            <div id="resultItem" class="result-item"></div>
+        </div>
+        
+        <div id="editor" class="editor hidden">
+            <h3>Edit Lootbox</h3>
+            <div class="lootbox-info">
+                <label for="boxName">Lootbox Name:</label>
+                <input type="text" id="boxName" placeholder="Enter lootbox name">
+            </div>
+            <div class="items-container">
+                <div class="items-header">
+                    <h4>Items and Odds</h4>
+                    <button id="addItem" class="btn-small">Add Item</button>
+                </div>
+                <div id="itemsList" class="items-list"></div>
+                <div class="odds-info">
+                    <span>Total odds: <span id="totalOdds">0</span></span>
+                </div>
+            </div>
+            <div class="editor-controls">
+                <button id="saveChanges" class="btn">Save Changes</button>
+                <button id="cancelEdit" class="btn">Cancel</button>
+            </div>
+        </div>
+        
+        <div id="currentBox" class="current-box">
+            <h3>Current Lootbox: <span id="currentBoxName">Default Box</span></h3>
+            <div id="currentItems" class="current-items"></div>
+        </div>
+        
+        <input type="file" id="fileInput" accept=".json" class="hidden">
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
