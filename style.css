@@ -166,6 +166,45 @@ h1 {
     color: #555;
 }
 
+.tries-options {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+}
+
+.tries-options h4 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.tries-input-group {
+    margin-top: 10px;
+}
+
+.tries-input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 14px;
+    color: #555;
+}
+
+.tries-input-group input[type="number"] {
+    width: 100px;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.tries-remaining {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
 .items-header {
     display: flex;
     justify-content: space-between;

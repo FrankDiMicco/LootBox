@@ -21,6 +21,7 @@
             <button id="createBox" class="btn">Create New Lootbox</button>
             <button id="saveBox" class="btn">Save Lootbox</button>
             <button id="loadBox" class="btn">Load Lootbox</button>
+            <button id="resetTries" class="btn">Reset Tries</button>
         </div>
         
         <div id="result" class="result hidden">
@@ -49,6 +50,19 @@
                     </label>
                 </div>
             </div>
+            <div class="tries-options">
+                <h4>Try Limits</h4>
+                <div class="toggle-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="unlimitedTries" checked>
+                        <span class="toggle-text">Unlimited tries</span>
+                    </label>
+                </div>
+                <div class="tries-input-group">
+                    <label for="maxTriesInput">Max Tries:</label>
+                    <input type="number" id="maxTriesInput" min="1" value="10" disabled>
+                </div>
+            </div>
             <div class="items-container">
                 <div class="items-header">
                     <h4>Items and Odds</h4>
@@ -67,6 +81,7 @@
         
         <div id="currentBox" class="current-box">
             <h3 id="currentBoxName">Default Box</h3>
+            <div id="triesRemaining" class="tries-remaining">Unlimited tries</div>
             <div id="currentItems" class="current-items"></div>
         </div>
         

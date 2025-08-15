@@ -8,7 +8,9 @@ class LootboxApp {
                 { name: 'Epic Item', odds: 0.1 }
             ],
             revealContents: true,
-            revealOdds: true
+            revealOdds: true,
+            maxTries: "unlimited",
+            remainingTries: "unlimited"
         };
         
         this.isEditing = false;
@@ -37,6 +39,8 @@ class LootboxApp {
             boxName: document.getElementById('boxName'),
             revealContents: document.getElementById('revealContents'),
             revealOdds: document.getElementById('revealOdds'),
+            unlimitedTries: document.getElementById('unlimitedTries'),
+            maxTriesInput: document.getElementById('maxTriesInput'),
             addItem: document.getElementById('addItem'),
             itemsList: document.getElementById('itemsList'),
             totalOdds: document.getElementById('totalOdds'),
@@ -46,6 +50,8 @@ class LootboxApp {
             currentBox: document.getElementById('currentBox'),
             currentBoxName: document.getElementById('currentBoxName'),
             currentItems: document.getElementById('currentItems'),
+            triesRemaining: document.getElementById('triesRemaining'),
+            resetTries: document.getElementById('resetTries'),
             
             loadModal: document.getElementById('loadModal'),
             closeModal: document.getElementById('closeModal'),
@@ -59,6 +65,7 @@ class LootboxApp {
         this.elements.createBox.addEventListener('click', () => this.createNewLootbox());
         this.elements.saveBox.addEventListener('click', () => this.saveLootbox());
         this.elements.loadBox.addEventListener('click', () => this.loadLootbox());
+        this.elements.resetTries.addEventListener('click', () => this.resetTries());
         
         this.elements.proceedAnyway.addEventListener('click', () => this.proceedWithWarning());
         
@@ -69,6 +76,9 @@ class LootboxApp {
         this.elements.revealContents.addEventListener('change', () => this.updateCurrentBoxDisplay());
         this.elements.revealOdds.addEventListener('change', () => this.updateCurrentBoxDisplay());
         
+        this.elements.unlimitedTries.addEventListener('change', () => this.toggleTriesInput());
+        this.elements.maxTriesInput.addEventListener('input', () => this.updateTriesDisplay());
+        
         this.elements.closeModal.addEventListener('click', () => this.closeLoadModal());
         this.elements.loadModal.addEventListener('click', (e) => {
             if (e.target === this.elements.loadModal) {
@@ -78,13 +88,52 @@ class LootboxApp {
     }
     
     openLootbox() {
+        if (!this.canOpenLootbox()) {
+            return;
+        }
+        
         if (!this.validateOdds() && !this.oddsWarningIgnored) {
             this.showWarning();
             return;
         }
         
         const result = this.rollLootbox();
+        this.decrementTries();
         this.displayResult(result);
+        this.updateCurrentBoxDisplay();
+    }
+    
+    canOpenLootbox() {
+        if (this.currentLootbox.remainingTries === "unlimited") {
+            return true;
+        }
+        
+        if (this.currentLootbox.remainingTries <= 0) {
+            this.showMessage('No tries remaining! Reset tries to continue.', 'error');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    decrementTries() {
+        if (this.currentLootbox.remainingTries !== "unlimited") {
+            this.currentLootbox.remainingTries--;
+            this.updateOpenButtonState();
+        }
+    }
+    
+    updateOpenButtonState() {
+        const canOpen = this.currentLootbox.remainingTries === "unlimited" || this.currentLootbox.remainingTries > 0;
+        this.elements.openBox.disabled = !canOpen;
+        
+        if (!canOpen) {
+            this.elements.openBox.style.opacity = '0.5';
+            this.elements.openBox.style.cursor = 'not-allowed';
+        } else {
+            this.elements.openBox.style.opacity = '1';
+            this.elements.openBox.style.cursor = 'pointer';
+        }
     }
     
     rollLootbox() {
@@ -115,6 +164,13 @@ class LootboxApp {
         this.elements.boxName.value = this.currentLootbox.name;
         this.elements.revealContents.checked = this.currentLootbox.revealContents !== false;
         this.elements.revealOdds.checked = this.currentLootbox.revealOdds !== false;
+        
+        // Set tries controls
+        const isUnlimited = this.currentLootbox.maxTries === "unlimited";
+        this.elements.unlimitedTries.checked = isUnlimited;
+        this.elements.maxTriesInput.disabled = isUnlimited;
+        this.elements.maxTriesInput.value = isUnlimited ? 10 : this.currentLootbox.maxTries;
+        
         this.populateItemsList();
         this.elements.editor.classList.remove('hidden');
         this.updateTotalOdds();
@@ -127,7 +183,9 @@ class LootboxApp {
                 { name: 'Default Item', odds: 1.0 }
             ],
             revealContents: true,
-            revealOdds: true
+            revealOdds: true,
+            maxTries: "unlimited",
+            remainingTries: "unlimited"
         };
         this.oddsWarningIgnored = false;
         this.updateCurrentBoxDisplay();
@@ -205,6 +263,16 @@ class LootboxApp {
         this.currentLootbox.revealContents = this.elements.revealContents.checked;
         this.currentLootbox.revealOdds = this.elements.revealOdds.checked;
         
+        // Update tries settings
+        if (this.elements.unlimitedTries.checked) {
+            this.currentLootbox.maxTries = "unlimited";
+            this.currentLootbox.remainingTries = "unlimited";
+        } else {
+            const maxTries = parseInt(this.elements.maxTriesInput.value) || 1;
+            this.currentLootbox.maxTries = maxTries;
+            this.currentLootbox.remainingTries = maxTries;
+        }
+        
         this.isEditing = false;
         this.oddsWarningIgnored = false;
         this.elements.editor.classList.add('hidden');
@@ -254,6 +322,9 @@ class LootboxApp {
         this.elements.currentBoxName.textContent = this.currentLootbox.name;
         this.elements.currentItems.innerHTML = '';
         
+        // Update tries display
+        this.updateTriesDisplay();
+        
         const revealContents = this.isEditing ? this.elements.revealContents.checked : this.currentLootbox.revealContents;
         const revealOdds = this.isEditing ? this.elements.revealOdds.checked : this.currentLootbox.revealOdds;
         
@@ -284,6 +355,30 @@ class LootboxApp {
             
             this.elements.currentItems.appendChild(itemElement);
         });
+    }
+    
+    updateTriesDisplay() {
+        if (this.currentLootbox.remainingTries === "unlimited") {
+            this.elements.triesRemaining.textContent = "Unlimited tries";
+        } else {
+            this.elements.triesRemaining.textContent = `Tries remaining: ${this.currentLootbox.remainingTries}`;
+        }
+        this.updateOpenButtonState();
+    }
+    
+    toggleTriesInput() {
+        const isUnlimited = this.elements.unlimitedTries.checked;
+        this.elements.maxTriesInput.disabled = isUnlimited;
+        
+        if (isUnlimited) {
+            this.elements.maxTriesInput.value = 10;
+        }
+    }
+    
+    resetTries() {
+        this.currentLootbox.remainingTries = this.currentLootbox.maxTries;
+        this.updateCurrentBoxDisplay();
+        this.showMessage('Tries reset successfully!', 'success');
     }
     
     saveLootbox() {
@@ -358,7 +453,9 @@ class LootboxApp {
                 this.currentLootbox = {
                     ...lootbox,
                     revealContents: lootbox.revealContents !== false,
-                    revealOdds: lootbox.revealOdds !== false
+                    revealOdds: lootbox.revealOdds !== false,
+                    maxTries: lootbox.maxTries || "unlimited",
+                    remainingTries: lootbox.remainingTries || "unlimited"
                 };
                 this.oddsWarningIgnored = false;
                 this.updateCurrentBoxDisplay();
