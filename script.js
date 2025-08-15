@@ -17,10 +17,12 @@ class LootboxApp {
         this.oddsWarningIgnored = false;
         this.cooldownTimer = null;
         this.resultTimer = null;
+        this.sessionHistory = [];
         
         this.initializeElements();
         this.attachEventListeners();
         this.updateCurrentBoxDisplay();
+        this.updateSessionDisplay();
     }
     
     initializeElements() {
@@ -53,6 +55,15 @@ class LootboxApp {
             currentBoxName: document.getElementById('currentBoxName'),
             currentItems: document.getElementById('currentItems'),
             triesRemaining: document.getElementById('triesRemaining'),
+            resetSession: document.getElementById('resetSession'),
+            
+            sessionHistory: document.getElementById('sessionHistory'),
+            sessionToggle: document.getElementById('sessionToggle'),
+            toggleButton: document.getElementById('toggleButton'),
+            sessionContent: document.getElementById('sessionContent'),
+            sessionStats: document.getElementById('sessionStats'),
+            totalPulls: document.getElementById('totalPulls'),
+            historyList: document.getElementById('historyList'),
             
             loadModal: document.getElementById('loadModal'),
             closeModal: document.getElementById('closeModal'),
@@ -66,6 +77,9 @@ class LootboxApp {
         this.elements.createBox.addEventListener('click', () => this.createNewLootbox());
         this.elements.saveBox.addEventListener('click', () => this.saveLootbox());
         this.elements.loadBox.addEventListener('click', () => this.loadLootbox());
+        this.elements.resetSession.addEventListener('click', () => this.resetSession());
+        
+        this.elements.sessionToggle.addEventListener('click', () => this.toggleSessionHistory());
         
         this.elements.proceedAnyway.addEventListener('click', () => this.proceedWithWarning());
         
@@ -102,6 +116,7 @@ class LootboxApp {
         
         const result = this.rollLootbox();
         this.decrementTries();
+        this.addToHistory(result);
         this.displayResult(result);
         this.updateCurrentBoxDisplay();
         this.startCooldown();
@@ -501,6 +516,7 @@ class LootboxApp {
                     remainingTries: lootbox.remainingTries || "unlimited"
                 };
                 this.oddsWarningIgnored = false;
+                this.resetSession(false);
                 this.updateCurrentBoxDisplay();
                 this.closeLoadModal();
                 this.showMessage('Lootbox loaded successfully!', 'success');
@@ -524,6 +540,92 @@ class LootboxApp {
     
     closeLoadModal() {
         this.elements.loadModal.classList.add('hidden');
+    }
+    
+    addToHistory(itemName) {
+        const historyEntry = {
+            item: itemName,
+            timestamp: new Date(),
+            lootboxName: this.currentLootbox.name
+        };
+        
+        this.sessionHistory.unshift(historyEntry); // Add to beginning
+        this.updateSessionDisplay();
+    }
+    
+    updateSessionDisplay() {
+        // Update total pulls
+        this.elements.totalPulls.textContent = this.sessionHistory.length;
+        
+        // Update history list
+        this.elements.historyList.innerHTML = '';
+        
+        if (this.sessionHistory.length === 0) {
+            this.elements.historyList.innerHTML = '<div class="no-history">No pulls yet this session</div>';
+            return;
+        }
+        
+        // Generate item counts for stats
+        const itemCounts = {};
+        this.sessionHistory.forEach(entry => {
+            itemCounts[entry.item] = (itemCounts[entry.item] || 0) + 1;
+        });
+        
+        // Update stats section
+        this.updateSessionStats(itemCounts);
+        
+        // Add history items
+        this.sessionHistory.forEach(entry => {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'history-item';
+            historyItem.innerHTML = `
+                <span class="history-item-name">You got: ${entry.item}</span>
+                <span class="history-item-time">${entry.timestamp.toLocaleTimeString()}</span>
+            `;
+            this.elements.historyList.appendChild(historyItem);
+        });
+    }
+    
+    updateSessionStats(itemCounts) {
+        // Clear existing stats except total pulls
+        this.elements.sessionStats.innerHTML = `
+            <div class="stat-item">Total Pulls: <span id="totalPulls">${this.sessionHistory.length}</span></div>
+        `;
+        
+        // Add item counts
+        Object.entries(itemCounts)
+            .sort(([,a], [,b]) => b - a) // Sort by count descending
+            .forEach(([item, count]) => {
+                const statItem = document.createElement('div');
+                statItem.className = 'stat-item';
+                statItem.innerHTML = `${item}: <span>${count}</span>`;
+                this.elements.sessionStats.appendChild(statItem);
+            });
+        
+        // Re-get the totalPulls element since we recreated the stats
+        this.elements.totalPulls = document.getElementById('totalPulls');
+    }
+    
+    resetSession(showMessage = true) {
+        this.sessionHistory = [];
+        this.updateSessionDisplay();
+        if (showMessage) {
+            this.showMessage('Session reset successfully!', 'success');
+        }
+    }
+    
+    toggleSessionHistory() {
+        const isCollapsed = this.elements.sessionContent.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            this.elements.sessionContent.classList.remove('collapsed');
+            this.elements.toggleButton.classList.remove('collapsed');
+            this.elements.toggleButton.textContent = '▼';
+        } else {
+            this.elements.sessionContent.classList.add('collapsed');
+            this.elements.toggleButton.classList.add('collapsed');
+            this.elements.toggleButton.textContent = '▶';
+        }
     }
 }
 
