@@ -6,7 +6,9 @@ class LootboxApp {
                 { name: 'Common Item', odds: 0.6 },
                 { name: 'Rare Item', odds: 0.3 },
                 { name: 'Epic Item', odds: 0.1 }
-            ]
+            ],
+            revealContents: true,
+            revealOdds: true
         };
         
         this.isEditing = false;
@@ -33,6 +35,8 @@ class LootboxApp {
             
             editor: document.getElementById('editor'),
             boxName: document.getElementById('boxName'),
+            revealContents: document.getElementById('revealContents'),
+            revealOdds: document.getElementById('revealOdds'),
             addItem: document.getElementById('addItem'),
             itemsList: document.getElementById('itemsList'),
             totalOdds: document.getElementById('totalOdds'),
@@ -59,6 +63,9 @@ class LootboxApp {
         this.elements.addItem.addEventListener('click', () => this.addItemRow());
         this.elements.saveChanges.addEventListener('click', () => this.saveChanges());
         this.elements.cancelEdit.addEventListener('click', () => this.cancelEdit());
+        
+        this.elements.revealContents.addEventListener('change', () => this.updateCurrentBoxDisplay());
+        this.elements.revealOdds.addEventListener('change', () => this.updateCurrentBoxDisplay());
         
         this.elements.fileInput.addEventListener('change', (e) => this.handleFileLoad(e));
     }
@@ -99,6 +106,8 @@ class LootboxApp {
         this.isEditing = true;
         this.oddsWarningIgnored = false;
         this.elements.boxName.value = this.currentLootbox.name;
+        this.elements.revealContents.checked = this.currentLootbox.revealContents !== false;
+        this.elements.revealOdds.checked = this.currentLootbox.revealOdds !== false;
         this.populateItemsList();
         this.elements.editor.classList.remove('hidden');
         this.updateTotalOdds();
@@ -109,7 +118,9 @@ class LootboxApp {
             name: 'New Lootbox',
             items: [
                 { name: 'Default Item', odds: 1.0 }
-            ]
+            ],
+            revealContents: true,
+            revealOdds: true
         };
         this.oddsWarningIgnored = false;
         this.updateCurrentBoxDisplay();
@@ -184,6 +195,8 @@ class LootboxApp {
         
         this.currentLootbox.name = this.elements.boxName.value.trim() || 'Unnamed Lootbox';
         this.currentLootbox.items = items;
+        this.currentLootbox.revealContents = this.elements.revealContents.checked;
+        this.currentLootbox.revealOdds = this.elements.revealOdds.checked;
         
         this.isEditing = false;
         this.oddsWarningIgnored = false;
@@ -231,15 +244,34 @@ class LootboxApp {
         this.elements.currentBoxName.textContent = this.currentLootbox.name;
         this.elements.currentItems.innerHTML = '';
         
+        const revealContents = this.isEditing ? this.elements.revealContents.checked : this.currentLootbox.revealContents;
+        const revealOdds = this.isEditing ? this.elements.revealOdds.checked : this.currentLootbox.revealOdds;
+        
+        if (!revealContents && !revealOdds) {
+            return;
+        }
+        
         const sortedItems = [...this.currentLootbox.items].sort((a, b) => b.odds - a.odds);
         
         sortedItems.forEach(item => {
             const itemElement = document.createElement('div');
             itemElement.className = 'current-item';
-            itemElement.innerHTML = `
-                <div class="current-item-name">${item.name}</div>
-                <div class="current-item-odds">${(item.odds * 100).toFixed(1)}%</div>
-            `;
+            
+            if (revealContents && revealOdds) {
+                itemElement.innerHTML = `
+                    <div class="current-item-name">${item.name}</div>
+                    <div class="current-item-odds">${(item.odds * 100).toFixed(1)}%</div>
+                `;
+            } else if (revealContents && !revealOdds) {
+                itemElement.innerHTML = `
+                    <div class="current-item-name">${item.name}</div>
+                `;
+            } else if (!revealContents && revealOdds) {
+                itemElement.innerHTML = `
+                    <div class="current-item-odds">${(item.odds * 100).toFixed(1)}%</div>
+                `;
+            }
+            
             this.elements.currentItems.appendChild(itemElement);
         });
     }
@@ -268,7 +300,11 @@ class LootboxApp {
                 const lootbox = JSON.parse(e.target.result);
                 
                 if (lootbox.name && lootbox.items && Array.isArray(lootbox.items)) {
-                    this.currentLootbox = lootbox;
+                    this.currentLootbox = {
+                        ...lootbox,
+                        revealContents: lootbox.revealContents !== false,
+                        revealOdds: lootbox.revealOdds !== false
+                    };
                     this.oddsWarningIgnored = false;
                     this.updateCurrentBoxDisplay();
                     this.showMessage('Lootbox loaded successfully!', 'success');

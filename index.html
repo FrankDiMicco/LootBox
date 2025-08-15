@@ -34,6 +34,21 @@
                 <label for="boxName">Lootbox Name:</label>
                 <input type="text" id="boxName" placeholder="Enter lootbox name">
             </div>
+            <div class="display-options">
+                <h4>Display Options</h4>
+                <div class="toggle-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="revealContents" checked>
+                        <span class="toggle-text">Reveal Loot Box Contents</span>
+                    </label>
+                </div>
+                <div class="toggle-group">
+                    <label class="toggle-label">
+                        <input type="checkbox" id="revealOdds" checked>
+                        <span class="toggle-text">Reveal Loot Box Odds</span>
+                    </label>
+                </div>
+            </div>
             <div class="items-container">
                 <div class="items-header">
                     <h4>Items and Odds</h4>
@@ -51,7 +66,7 @@
         </div>
         
         <div id="currentBox" class="current-box">
-            <h3>Current Lootbox: <span id="currentBoxName">Default Box</span></h3>
+            <h3 id="currentBoxName">Default Box</h3>
             <div id="currentItems" class="current-items"></div>
         </div>
         
