@@ -210,7 +210,10 @@ class LootboxApp {
         this.elements.editor.classList.add('hidden');
         this.elements.warning.classList.add('hidden');
         this.updateCurrentBoxDisplay();
-        this.showMessage('Lootbox saved successfully!', 'success');
+        
+        // Auto-save to localStorage when changes are saved
+        this.saveLootbox();
+        this.showMessage('Lootbox changes saved!', 'success');
     }
     
     cancelEdit() {
@@ -291,7 +294,10 @@ class LootboxApp {
         
         try {
             localStorage.setItem(`lootbox_${this.currentLootbox.name}`, JSON.stringify(lootboxData));
-            this.showMessage('Lootbox saved successfully!', 'success');
+            // Only show message if called directly (not from saveChanges)
+            if (!this.isEditing) {
+                this.showMessage('Lootbox saved successfully!', 'success');
+            }
         } catch (error) {
             this.showMessage('Error saving lootbox: ' + error.message, 'error');
         }
