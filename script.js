@@ -51,7 +51,6 @@ class LootboxApp {
             currentBoxName: document.getElementById('currentBoxName'),
             currentItems: document.getElementById('currentItems'),
             triesRemaining: document.getElementById('triesRemaining'),
-            resetTries: document.getElementById('resetTries'),
             
             loadModal: document.getElementById('loadModal'),
             closeModal: document.getElementById('closeModal'),
@@ -65,7 +64,6 @@ class LootboxApp {
         this.elements.createBox.addEventListener('click', () => this.createNewLootbox());
         this.elements.saveBox.addEventListener('click', () => this.saveLootbox());
         this.elements.loadBox.addEventListener('click', () => this.loadLootbox());
-        this.elements.resetTries.addEventListener('click', () => this.resetTries());
         
         this.elements.proceedAnyway.addEventListener('click', () => this.proceedWithWarning());
         
