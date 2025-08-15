@@ -55,7 +55,7 @@ class LootboxApp {
             currentBoxName: document.getElementById('currentBoxName'),
             currentItems: document.getElementById('currentItems'),
             triesRemaining: document.getElementById('triesRemaining'),
-            resetSession: document.getElementById('resetSession'),
+            clearHistory: document.getElementById('clearHistory'),
             
             sessionHistory: document.getElementById('sessionHistory'),
             sessionToggle: document.getElementById('sessionToggle'),
@@ -77,7 +77,6 @@ class LootboxApp {
         this.elements.createBox.addEventListener('click', () => this.createNewLootbox());
         this.elements.saveBox.addEventListener('click', () => this.saveLootbox());
         this.elements.loadBox.addEventListener('click', () => this.loadLootbox());
-        this.elements.resetSession.addEventListener('click', () => this.resetSession());
         
         this.elements.sessionToggle.addEventListener('click', () => this.toggleSessionHistory());
         
@@ -86,6 +85,7 @@ class LootboxApp {
         this.elements.addItem.addEventListener('click', () => this.addItemRow());
         this.elements.saveChanges.addEventListener('click', () => this.saveChanges());
         this.elements.cancelEdit.addEventListener('click', () => this.cancelEdit());
+        this.elements.clearHistory.addEventListener('click', () => this.clearHistory());
         
         this.elements.revealContents.addEventListener('change', () => this.updateCurrentBoxDisplay());
         this.elements.revealOdds.addEventListener('change', () => this.updateCurrentBoxDisplay());
@@ -554,16 +554,8 @@ class LootboxApp {
     }
     
     updateSessionDisplay() {
-        // Update total pulls
-        this.elements.totalPulls.textContent = this.sessionHistory.length;
-        
         // Update history list
         this.elements.historyList.innerHTML = '';
-        
-        if (this.sessionHistory.length === 0) {
-            this.elements.historyList.innerHTML = '<div class="no-history">No pulls yet this session</div>';
-            return;
-        }
         
         // Generate item counts for stats
         const itemCounts = {};
@@ -571,8 +563,13 @@ class LootboxApp {
             itemCounts[entry.item] = (itemCounts[entry.item] || 0) + 1;
         });
         
-        // Update stats section
+        // Always update stats section (even when empty)
         this.updateSessionStats(itemCounts);
+        
+        if (this.sessionHistory.length === 0) {
+            this.elements.historyList.innerHTML = '<div class="no-history">No pulls yet this session</div>';
+            return;
+        }
         
         // Add history items
         this.sessionHistory.forEach(entry => {
@@ -610,8 +607,12 @@ class LootboxApp {
         this.sessionHistory = [];
         this.updateSessionDisplay();
         if (showMessage) {
-            this.showMessage('Session reset successfully!', 'success');
+            this.showMessage('History cleared successfully!', 'success');
         }
+    }
+    
+    clearHistory() {
+        this.resetSession();
     }
     
     toggleSessionHistory() {
