@@ -231,7 +231,9 @@ class LootboxApp {
         this.elements.currentBoxName.textContent = this.currentLootbox.name;
         this.elements.currentItems.innerHTML = '';
         
-        this.currentLootbox.items.forEach(item => {
+        const sortedItems = [...this.currentLootbox.items].sort((a, b) => b.odds - a.odds);
+        
+        sortedItems.forEach(item => {
             const itemElement = document.createElement('div');
             itemElement.className = 'current-item';
             itemElement.innerHTML = `
