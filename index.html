@@ -70,7 +70,17 @@
             <div id="currentItems" class="current-items"></div>
         </div>
         
-        <input type="file" id="fileInput" accept=".json" class="hidden">
+        <div id="loadModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Load Lootbox</h3>
+                    <button id="closeModal" class="close-btn">&times;</button>
+                </div>
+                <div id="savedLootboxes" class="saved-lootboxes">
+                    <div class="no-saved">No saved lootboxes found.</div>
+                </div>
+            </div>
+        </div>
     </div>
     
     <script src="script.js"></script>

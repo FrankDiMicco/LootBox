@@ -47,7 +47,9 @@ class LootboxApp {
             currentBoxName: document.getElementById('currentBoxName'),
             currentItems: document.getElementById('currentItems'),
             
-            fileInput: document.getElementById('fileInput')
+            loadModal: document.getElementById('loadModal'),
+            closeModal: document.getElementById('closeModal'),
+            savedLootboxes: document.getElementById('savedLootboxes')
         };
     }
     
@@ -67,7 +69,12 @@ class LootboxApp {
         this.elements.revealContents.addEventListener('change', () => this.updateCurrentBoxDisplay());
         this.elements.revealOdds.addEventListener('change', () => this.updateCurrentBoxDisplay());
         
-        this.elements.fileInput.addEventListener('change', (e) => this.handleFileLoad(e));
+        this.elements.closeModal.addEventListener('click', () => this.closeLoadModal());
+        this.elements.loadModal.addEventListener('click', (e) => {
+            if (e.target === this.elements.loadModal) {
+                this.closeLoadModal();
+            }
+        });
     }
     
     openLootbox() {
@@ -277,47 +284,100 @@ class LootboxApp {
     }
     
     saveLootbox() {
-        const dataStr = JSON.stringify(this.currentLootbox, null, 2);
-        const dataBlob = new Blob([dataStr], {type: 'application/json'});
+        const lootboxData = {
+            ...this.currentLootbox,
+            lastUpdated: new Date().toISOString()
+        };
         
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(dataBlob);
-        link.download = `${this.currentLootbox.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
-        link.click();
+        try {
+            localStorage.setItem(`lootbox_${this.currentLootbox.name}`, JSON.stringify(lootboxData));
+            this.showMessage('Lootbox saved successfully!', 'success');
+        } catch (error) {
+            this.showMessage('Error saving lootbox: ' + error.message, 'error');
+        }
     }
     
     loadLootbox() {
-        this.elements.fileInput.click();
+        this.populateLoadModal();
+        this.elements.loadModal.classList.remove('hidden');
     }
     
-    handleFileLoad(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+    populateLoadModal() {
+        const savedLootboxes = this.getSavedLootboxes();
+        this.elements.savedLootboxes.innerHTML = '';
         
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const lootbox = JSON.parse(e.target.result);
-                
-                if (lootbox.name && lootbox.items && Array.isArray(lootbox.items)) {
-                    this.currentLootbox = {
-                        ...lootbox,
-                        revealContents: lootbox.revealContents !== false,
-                        revealOdds: lootbox.revealOdds !== false
-                    };
-                    this.oddsWarningIgnored = false;
-                    this.updateCurrentBoxDisplay();
-                    this.showMessage('Lootbox loaded successfully!', 'success');
-                } else {
-                    this.showMessage('Invalid lootbox file format.', 'error');
+        if (savedLootboxes.length === 0) {
+            this.elements.savedLootboxes.innerHTML = '<div class="no-saved">No saved lootboxes found.</div>';
+            return;
+        }
+        
+        savedLootboxes.forEach(lootbox => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'saved-item';
+            itemElement.innerHTML = `
+                <div class="saved-item-info">
+                    <div class="saved-item-name">${lootbox.name}</div>
+                    <div class="saved-item-date">Last modified: ${new Date(lootbox.lastUpdated).toLocaleString()}</div>
+                </div>
+                <div class="saved-item-controls">
+                    <button class="btn-load" onclick="app.loadSavedLootbox('${lootbox.name}')">Load</button>
+                    <button class="btn-delete" onclick="app.deleteSavedLootbox('${lootbox.name}')">Delete</button>
+                </div>
+            `;
+            this.elements.savedLootboxes.appendChild(itemElement);
+        });
+    }
+    
+    getSavedLootboxes() {
+        const lootboxes = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('lootbox_')) {
+                try {
+                    const lootboxData = JSON.parse(localStorage.getItem(key));
+                    lootboxes.push(lootboxData);
+                } catch (error) {
+                    console.error('Error parsing saved lootbox:', error);
                 }
-            } catch (error) {
-                this.showMessage('Error reading file: ' + error.message, 'error');
             }
-        };
-        reader.readAsText(file);
-        
-        event.target.value = '';
+        }
+        return lootboxes.sort((a, b) => new Date(b.lastUpdated) - new Date(a.lastUpdated));
+    }
+    
+    loadSavedLootbox(name) {
+        try {
+            const savedData = localStorage.getItem(`lootbox_${name}`);
+            if (savedData) {
+                const lootbox = JSON.parse(savedData);
+                this.currentLootbox = {
+                    ...lootbox,
+                    revealContents: lootbox.revealContents !== false,
+                    revealOdds: lootbox.revealOdds !== false
+                };
+                this.oddsWarningIgnored = false;
+                this.updateCurrentBoxDisplay();
+                this.closeLoadModal();
+                this.showMessage('Lootbox loaded successfully!', 'success');
+            } else {
+                this.showMessage('Lootbox not found.', 'error');
+            }
+        } catch (error) {
+            this.showMessage('Error loading lootbox: ' + error.message, 'error');
+        }
+    }
+    
+    deleteSavedLootbox(name) {
+        try {
+            localStorage.removeItem(`lootbox_${name}`);
+            this.populateLoadModal();
+            this.showMessage('Lootbox deleted successfully!', 'success');
+        } catch (error) {
+            this.showMessage('Error deleting lootbox: ' + error.message, 'error');
+        }
+    }
+    
+    closeLoadModal() {
+        this.elements.loadModal.classList.add('hidden');
     }
 }
 
