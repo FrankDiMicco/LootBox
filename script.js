@@ -15,6 +15,8 @@ class LootboxApp {
         
         this.isEditing = false;
         this.oddsWarningIgnored = false;
+        this.cooldownTimer = null;
+        this.resultTimer = null;
         
         this.initializeElements();
         this.attachEventListeners();
@@ -95,13 +97,45 @@ class LootboxApp {
             return;
         }
         
+        // Clear any existing timers
+        this.clearTimers();
+        
         const result = this.rollLootbox();
         this.decrementTries();
         this.displayResult(result);
         this.updateCurrentBoxDisplay();
+        this.startCooldown();
+    }
+    
+    clearTimers() {
+        if (this.cooldownTimer) {
+            clearTimeout(this.cooldownTimer);
+            this.cooldownTimer = null;
+        }
+        if (this.resultTimer) {
+            clearTimeout(this.resultTimer);
+            this.resultTimer = null;
+        }
+    }
+    
+    startCooldown() {
+        this.elements.openBox.disabled = true;
+        this.elements.openBox.textContent = 'Opening...';
+        
+        this.cooldownTimer = setTimeout(() => {
+            this.elements.openBox.disabled = false;
+            this.elements.openBox.textContent = 'Open Lootbox';
+            this.cooldownTimer = null;
+            this.updateOpenButtonState(); // Recheck if tries are exhausted
+        }, 1000);
     }
     
     canOpenLootbox() {
+        // Check if on cooldown
+        if (this.cooldownTimer) {
+            return false;
+        }
+        
         if (this.currentLootbox.remainingTries === "unlimited") {
             return true;
         }
@@ -122,15 +156,24 @@ class LootboxApp {
     }
     
     updateOpenButtonState() {
-        const canOpen = this.currentLootbox.remainingTries === "unlimited" || this.currentLootbox.remainingTries > 0;
+        const hasTriesRemaining = this.currentLootbox.remainingTries === "unlimited" || this.currentLootbox.remainingTries > 0;
+        const isOnCooldown = this.cooldownTimer !== null;
+        const canOpen = hasTriesRemaining && !isOnCooldown;
+        
         this.elements.openBox.disabled = !canOpen;
         
-        if (!canOpen) {
+        if (!hasTriesRemaining) {
             this.elements.openBox.style.opacity = '0.5';
             this.elements.openBox.style.cursor = 'not-allowed';
+            this.elements.openBox.textContent = 'No Tries Left';
+        } else if (isOnCooldown) {
+            this.elements.openBox.style.opacity = '0.7';
+            this.elements.openBox.style.cursor = 'not-allowed';
+            // Text is already set to 'Opening...' in startCooldown()
         } else {
             this.elements.openBox.style.opacity = '1';
             this.elements.openBox.style.cursor = 'pointer';
+            this.elements.openBox.textContent = 'Open Lootbox';
         }
     }
     
@@ -151,8 +194,10 @@ class LootboxApp {
     displayResult(itemName) {
         this.elements.resultItem.textContent = itemName;
         this.elements.result.classList.remove('hidden');
-        setTimeout(() => {
+        
+        this.resultTimer = setTimeout(() => {
             this.elements.result.classList.add('hidden');
+            this.resultTimer = null;
         }, 3000);
     }
     
