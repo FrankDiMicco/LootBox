@@ -140,7 +140,7 @@ class LootboxApp {
         
         this.cooldownTimer = setTimeout(() => {
             this.elements.openBox.disabled = false;
-            this.elements.openBox.textContent = 'Open Lootbox';
+            this.elements.openBox.textContent = 'Open';
             this.cooldownTimer = null;
             this.updateOpenButtonState(); // Recheck if tries are exhausted
         }, 1000);
@@ -194,7 +194,7 @@ class LootboxApp {
         } else {
             this.elements.openBox.style.opacity = '1';
             this.elements.openBox.style.cursor = 'pointer';
-            this.elements.openBox.textContent = 'Open Lootbox';
+            this.elements.openBox.textContent = 'Open';
         }
     }
     
@@ -511,6 +511,10 @@ class LootboxApp {
                 this.elements.editBox.disabled = false;
                 this.elements.createBox.disabled = true;
             }
+            
+            // Make lootbox and history sections inactive
+            this.elements.currentBox.classList.add('inactive');
+            this.elements.sessionHistory.classList.add('inactive');
         } else {
             // Enable all buttons when not editing
             this.elements.editBox.disabled = false;
@@ -518,6 +522,10 @@ class LootboxApp {
             this.elements.saveBox.disabled = false;
             this.elements.loadBox.disabled = false;
             // Note: openBox state is handled by updateOpenButtonState()
+            
+            // Make lootbox and history sections active
+            this.elements.currentBox.classList.remove('inactive');
+            this.elements.sessionHistory.classList.remove('inactive');
         }
     }
     
