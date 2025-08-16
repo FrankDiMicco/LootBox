@@ -56,6 +56,7 @@ class LootboxApp {
             currentBoxName: document.getElementById('currentBoxName'),
             currentItems: document.getElementById('currentItems'),
             triesRemaining: document.getElementById('triesRemaining'),
+            clickToOpen: document.getElementById('clickToOpen'),
             clearHistory: document.getElementById('clearHistory'),
             
             sessionHistory: document.getElementById('sessionHistory'),
@@ -139,12 +140,14 @@ class LootboxApp {
     startCooldown() {
         this.elements.openBox.disabled = true;
         this.elements.openBox.textContent = 'Opening...';
+        this.updateTriesDisplay(); // Hide "Click Here to Open" during cooldown
         
         this.cooldownTimer = setTimeout(() => {
             this.elements.openBox.disabled = false;
             this.elements.openBox.textContent = 'Open';
             this.cooldownTimer = null;
             this.updateOpenButtonState(); // Recheck if tries are exhausted
+            this.updateTriesDisplay(); // Show "Click Here to Open" again if possible
         }, 1000);
     }
     
@@ -476,6 +479,17 @@ class LootboxApp {
         } else {
             this.elements.triesRemaining.textContent = `Tries remaining: ${this.currentLootbox.remainingTries}`;
         }
+        
+        // Show/hide "Click Here to Open" text based on available tries and editing state
+        const hasTriesRemaining = this.currentLootbox.remainingTries === "unlimited" || this.currentLootbox.remainingTries > 0;
+        const canOpen = hasTriesRemaining && !this.isEditing && !this.cooldownTimer;
+        
+        if (canOpen) {
+            this.elements.clickToOpen.classList.remove('hidden');
+        } else {
+            this.elements.clickToOpen.classList.add('hidden');
+        }
+        
         this.updateOpenButtonState();
     }
     
