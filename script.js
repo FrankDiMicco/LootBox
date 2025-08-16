@@ -247,6 +247,24 @@ class LootboxApp {
     }
     
     createNewLootbox() {
+        // Check if we're already creating a new lootbox (same data structure)
+        const isCreatingNew = this.isEditing && this.currentLootbox.name === 'New Lootbox' && 
+                              this.currentLootbox.items.length === 1 && 
+                              this.currentLootbox.items[0].name === 'Default Item';
+        
+        // If already creating new lootbox, just close the editor
+        if (isCreatingNew) {
+            this.cancelEdit();
+            return;
+        }
+        
+        // If editing something else, close first then create new
+        if (this.isEditing) {
+            this.isEditing = false;
+            this.elements.editor.classList.add('hidden');
+            this.elements.warning.classList.add('hidden');
+        }
+        
         this.currentLootbox = {
             name: 'New Lootbox',
             items: [
@@ -259,7 +277,23 @@ class LootboxApp {
         };
         this.oddsWarningIgnored = false;
         this.updateCurrentBoxDisplay();
-        this.editLootbox();
+        
+        // Open the editor for the new lootbox
+        this.isEditing = true;
+        this.elements.boxName.value = this.currentLootbox.name;
+        this.elements.revealContents.checked = this.currentLootbox.revealContents !== false;
+        this.elements.revealOdds.checked = this.currentLootbox.revealOdds !== false;
+        
+        // Set tries controls
+        const isUnlimited = this.currentLootbox.maxTries === "unlimited";
+        this.elements.unlimitedTries.checked = isUnlimited;
+        this.elements.maxTriesInput.disabled = isUnlimited;
+        this.elements.maxTriesInput.value = isUnlimited ? 10 : this.currentLootbox.maxTries;
+        
+        this.populateItemsList();
+        this.elements.editor.classList.remove('hidden');
+        this.updateTotalOdds();
+        this.updateOpenButtonState();
     }
     
     populateItemsList() {
@@ -534,6 +568,14 @@ class LootboxApp {
                 this.updateCurrentBoxDisplay();
                 this.closeLoadModal();
                 this.showMessage('Lootbox loaded successfully!', 'success');
+                
+                // Ensure we're not in editing mode after loading
+                if (this.isEditing) {
+                    this.isEditing = false;
+                    this.elements.editor.classList.add('hidden');
+                    this.elements.warning.classList.add('hidden');
+                    this.updateOpenButtonState();
+                }
             } else {
                 this.showMessage('Lootbox not found.', 'error');
             }
