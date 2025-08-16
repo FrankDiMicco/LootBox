@@ -18,6 +18,7 @@ class LootboxApp {
         this.cooldownTimer = null;
         this.resultTimer = null;
         this.sessionHistory = [];
+        this.previousLootbox = null;
         
         this.initializeElements();
         this.attachEventListeners();
@@ -244,6 +245,7 @@ class LootboxApp {
         this.elements.editor.classList.remove('hidden');
         this.updateTotalOdds();
         this.updateOpenButtonState();
+        this.updateMainButtonsState();
     }
     
     createNewLootbox() {
@@ -258,7 +260,7 @@ class LootboxApp {
             return;
         }
         
-        // If editing something else, close first then create new
+        // If editing, close first
         if (this.isEditing) {
             this.isEditing = false;
             this.elements.editor.classList.add('hidden');
@@ -294,6 +296,7 @@ class LootboxApp {
         this.elements.editor.classList.remove('hidden');
         this.updateTotalOdds();
         this.updateOpenButtonState();
+        this.updateMainButtonsState();
     }
     
     populateItemsList() {
@@ -395,6 +398,7 @@ class LootboxApp {
         this.elements.editor.classList.add('hidden');
         this.elements.warning.classList.add('hidden');
         this.updateOpenButtonState();
+        this.updateMainButtonsState();
     }
     
     validateOdds() {
@@ -485,6 +489,36 @@ class LootboxApp {
         this.currentLootbox.remainingTries = this.currentLootbox.maxTries;
         this.updateCurrentBoxDisplay();
         this.showMessage('Tries reset successfully!', 'success');
+    }
+    
+    updateMainButtonsState() {
+        const isCreatingNew = this.isEditing && this.currentLootbox.name === 'New Lootbox' && 
+                              this.currentLootbox.items.length === 1 && 
+                              this.currentLootbox.items[0].name === 'Default Item';
+        
+        // Disable all main buttons except the active one when editing
+        if (this.isEditing) {
+            this.elements.openBox.disabled = true;
+            this.elements.saveBox.disabled = true;
+            this.elements.loadBox.disabled = true;
+            
+            if (isCreatingNew) {
+                // When creating new, only "Create New Lootbox" is enabled
+                this.elements.editBox.disabled = true;
+                this.elements.createBox.disabled = false;
+            } else {
+                // When editing existing, only "Edit Lootbox" is enabled
+                this.elements.editBox.disabled = false;
+                this.elements.createBox.disabled = true;
+            }
+        } else {
+            // Enable all buttons when not editing
+            this.elements.editBox.disabled = false;
+            this.elements.createBox.disabled = false;
+            this.elements.saveBox.disabled = false;
+            this.elements.loadBox.disabled = false;
+            // Note: openBox state is handled by updateOpenButtonState()
+        }
     }
     
     saveLootbox() {

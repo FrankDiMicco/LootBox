@@ -48,6 +48,16 @@ h1 {
     background-color: #0056b3;
 }
 
+.btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.btn:disabled:hover {
+    background-color: #6c757d;
+}
+
 .btn-secondary {
     background-color: #6c757d;
 }
