@@ -100,6 +100,8 @@ class LootboxApp {
                 this.closeLoadModal();
             }
         });
+        
+        this.elements.currentBox.addEventListener('click', () => this.openLootbox());
     }
     
     openLootbox() {
