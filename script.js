@@ -390,6 +390,7 @@ class LootboxApp {
         this.saveLootbox();
         this.showMessage('Lootbox changes saved!', 'success');
         this.updateOpenButtonState();
+        this.updateMainButtonsState();
     }
     
     cancelEdit() {
