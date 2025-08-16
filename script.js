@@ -28,7 +28,6 @@ class LootboxApp {
     
     initializeElements() {
         this.elements = {
-            openBox: document.getElementById('openBox'),
             editBox: document.getElementById('editBox'),
             createBox: document.getElementById('createBox'),
             saveBox: document.getElementById('saveBox'),
@@ -74,7 +73,6 @@ class LootboxApp {
     }
     
     attachEventListeners() {
-        this.elements.openBox.addEventListener('click', () => this.openLootbox());
         this.elements.editBox.addEventListener('click', () => this.editLootbox());
         this.elements.createBox.addEventListener('click', () => this.createNewLootbox());
         this.elements.saveBox.addEventListener('click', () => this.saveLootbox());
@@ -138,15 +136,10 @@ class LootboxApp {
     }
     
     startCooldown() {
-        this.elements.openBox.disabled = true;
-        this.elements.openBox.textContent = 'Opening...';
         this.updateTriesDisplay(); // Hide "Click Here to Open" during cooldown
         
         this.cooldownTimer = setTimeout(() => {
-            this.elements.openBox.disabled = false;
-            this.elements.openBox.textContent = 'Open';
             this.cooldownTimer = null;
-            this.updateOpenButtonState(); // Recheck if tries are exhausted
             this.updateTriesDisplay(); // Show "Click Here to Open" again if possible
         }, 1000);
     }
@@ -177,30 +170,9 @@ class LootboxApp {
     }
     
     updateOpenButtonState() {
-        const hasTriesRemaining = this.currentLootbox.remainingTries === "unlimited" || this.currentLootbox.remainingTries > 0;
-        const isOnCooldown = this.cooldownTimer !== null;
-        const isEditing = this.isEditing;
-        const canOpen = hasTriesRemaining && !isOnCooldown && !isEditing;
-        
-        this.elements.openBox.disabled = !canOpen;
-        
-        if (isEditing) {
-            this.elements.openBox.style.opacity = '0.5';
-            this.elements.openBox.style.cursor = 'not-allowed';
-            this.elements.openBox.textContent = 'Editing...';
-        } else if (!hasTriesRemaining) {
-            this.elements.openBox.style.opacity = '0.5';
-            this.elements.openBox.style.cursor = 'not-allowed';
-            this.elements.openBox.textContent = 'No Tries Left';
-        } else if (isOnCooldown) {
-            this.elements.openBox.style.opacity = '0.7';
-            this.elements.openBox.style.cursor = 'not-allowed';
-            // Text is already set to 'Opening...' in startCooldown()
-        } else {
-            this.elements.openBox.style.opacity = '1';
-            this.elements.openBox.style.cursor = 'pointer';
-            this.elements.openBox.textContent = 'Open';
-        }
+        // This method is now simplified since we removed the open button
+        // Just update the tries display which handles the "Click Here to Open" text
+        this.updateTriesDisplay();
     }
     
     rollLootbox() {
@@ -515,7 +487,6 @@ class LootboxApp {
         
         // Disable all main buttons except the active one when editing
         if (this.isEditing) {
-            this.elements.openBox.disabled = true;
             this.elements.saveBox.disabled = true;
             this.elements.loadBox.disabled = true;
             
@@ -538,7 +509,6 @@ class LootboxApp {
             this.elements.createBox.disabled = false;
             this.elements.saveBox.disabled = false;
             this.elements.loadBox.disabled = false;
-            // Note: openBox state is handled by updateOpenButtonState()
             
             // Make lootbox and history sections active
             this.elements.currentBox.classList.remove('inactive');
