@@ -173,11 +173,16 @@ class LootboxApp {
     updateOpenButtonState() {
         const hasTriesRemaining = this.currentLootbox.remainingTries === "unlimited" || this.currentLootbox.remainingTries > 0;
         const isOnCooldown = this.cooldownTimer !== null;
-        const canOpen = hasTriesRemaining && !isOnCooldown;
+        const isEditing = this.isEditing;
+        const canOpen = hasTriesRemaining && !isOnCooldown && !isEditing;
         
         this.elements.openBox.disabled = !canOpen;
         
-        if (!hasTriesRemaining) {
+        if (isEditing) {
+            this.elements.openBox.style.opacity = '0.5';
+            this.elements.openBox.style.cursor = 'not-allowed';
+            this.elements.openBox.textContent = 'Editing...';
+        } else if (!hasTriesRemaining) {
             this.elements.openBox.style.opacity = '0.5';
             this.elements.openBox.style.cursor = 'not-allowed';
             this.elements.openBox.textContent = 'No Tries Left';
@@ -217,6 +222,12 @@ class LootboxApp {
     }
     
     editLootbox() {
+        // If already editing, close the editor
+        if (this.isEditing) {
+            this.cancelEdit();
+            return;
+        }
+        
         this.isEditing = true;
         this.oddsWarningIgnored = false;
         this.elements.boxName.value = this.currentLootbox.name;
@@ -232,6 +243,7 @@ class LootboxApp {
         this.populateItemsList();
         this.elements.editor.classList.remove('hidden');
         this.updateTotalOdds();
+        this.updateOpenButtonState();
     }
     
     createNewLootbox() {
@@ -340,6 +352,7 @@ class LootboxApp {
         // Auto-save to localStorage when changes are saved
         this.saveLootbox();
         this.showMessage('Lootbox changes saved!', 'success');
+        this.updateOpenButtonState();
     }
     
     cancelEdit() {
@@ -347,6 +360,7 @@ class LootboxApp {
         this.oddsWarningIgnored = false;
         this.elements.editor.classList.add('hidden');
         this.elements.warning.classList.add('hidden');
+        this.updateOpenButtonState();
     }
     
     validateOdds() {
